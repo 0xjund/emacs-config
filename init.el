@@ -1,9 +1,12 @@
 ;; NOTE: init.el is now generated from Emacs.org.  Please edit that file
 ;;       in Emacs and init.el will be generated automatically!
 
-;; You will most likely need to adjust this font size for your system!
-(defvar efs/default-font-size 120)
-(defvar efs/default-variable-font-size 120)
+(defvar efs/default-font-size 130)
+(defvar efs/default-variable-font-size 130)
+
+;; Font configuration with fallback
+
+(add-to-list 'default-frame-alist '(font . "InToneMono Nerd Font-13"))
 
 ;; Initialize package sources
 (require 'package)
@@ -33,7 +36,7 @@
 (straight-use-package
  '(all-the-icons :type git :host github :repo "domtronn/all-the-icons.el" :branch "svg"))
 
-;; Update your existing all-the-icons config to use straight
+;; 
 (use-package all-the-icons
   :straight nil  ; Tell use-package not to install via package.el
   :config
@@ -58,9 +61,6 @@
 (menu-bar-mode -1)            ; Disable the menu bar
 
 
-
-
-
 (column-number-mode)
 (global-display-line-numbers-mode t)
 
@@ -71,15 +71,6 @@
 	              treemacs-mode-hook
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
-
-;; Font configuration with fallback
-(if (find-font (font-spec :name "IosevkaTerm Slab Nerd Font"))
-    (progn
-      (set-face-attribute 'default nil :font "IosevkaTerm Slab Nerd Font" :height efs/default-font-size)
-      (set-face-attribute 'fixed-pitch nil :font "IosevkaTerm Slab Nerd Font" :height efs/default-font-size))
-  (progn
-    (set-face-attribute 'default nil :font "Monospace" :height efs/default-font-size)
-    (set-face-attribute 'fixed-pitch nil :font "Monospace" :height efs/default-font-size)))
 
 ;; Set the variable pitch face
 (set-face-attribute 'variable-pitch nil :font "Cantarell" :height efs/default-variable-font-size :weight 'regular)
@@ -112,7 +103,7 @@
     "fS" '(save-some-buffers :which-key "save all files")
     "fd" '(dired :which-key "dired")
     
-    ;; Project-related (since you have projectile)
+    ;; Project-related 
     "p"  '(:ignore t :which-key "project")
     "pf" '(counsel-projectile-find-file :which-key "project files")
     "pr" '(projectile-recentf :which-key "project recent files")
@@ -145,8 +136,15 @@
 
 (use-package command-log-mode)
 
+
+;; (use-package catppuccin-theme
+;;   :ensure t
+;;   :config
+;;   (setq catppuccin-flavor 'frappe) 
+;;   (load-theme 'catppuccin :no-confirm))
+
 (use-package doom-themes
-  :init (load-theme 'doom-dracula t))
+:init (load-theme 'doom-dracula t))
 
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
@@ -249,9 +247,9 @@
   (setq org-log-into-drawer t)
 
   (setq org-agenda-files
-        '("~/Projects/Code/emacs-from-scratch/OrgFiles/Tasks.org"
-          "~/Projects/Code/emacs-from-scratch/OrgFiles/Habits.org"
-          "~/Projects/Code/emacs-from-scratch/OrgFiles/Birthdays.org"))
+        '("~/Org-Sync/Org-Files/Tasks.org"
+          "~/Org-Sync/Org-Files/Habits.org"
+          "~/Org-Sync/Org-Files/Birthdays.org"))
 
   (require 'org-habit)
   (add-to-list 'org-modules 'org-habit)
@@ -403,6 +401,13 @@
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
   (lsp-headerline-breadcrumb-mode))
 
+(use-package yasnippet
+  :config
+  (yas-global-mode 1))
+
+(use-package yasnippet-snippets
+  :after yasnippet)
+
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
   :hook (lsp-mode . efs/lsp-mode-setup)
@@ -410,6 +415,9 @@
   (setq lsp-keymap-prefix "C-c l")  ;; Or 'C-l', 's-l'
   :config
   (lsp-enable-which-key-integration t))
+
+(with-eval-after-load 'lsp-mode
+  (setq lsp-disabled-clients '(semgrep-ls)))
 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode)
@@ -424,11 +432,19 @@
 
 (use-package lsp-ivy)
 
-(use-package typescript-mode
-  :mode "\\.ts\\'"
-  :hook (typescript-mode . lsp-deferred)
+;; ;; ==================== Go Setup ====================
+(use-package go-mode
+  :mode "\\.go\\'"
+  :hook (go-mode . lsp-deferred)  
   :config
-  (setq typescript-indent-level 2))
+  ;; Go-specific settings
+  (setq gofmt-command "goimports")  ; Format + organize imports
+  (add-hook 'before-save-hook #'gofmt-before-save nil t)  ; Format on save (buffer-local)
+  (setq indent-tabs-mode t)  
+  (setq tab-width 4))
+(add-to-list 'exec-path (expand-file-name "~/go/bin"))
+
+;; ;; ==================== Rust Setup ====================
 
 (use-package rust-mode
   :mode "\\.rs\\'"
@@ -439,6 +455,8 @@
 (use-package cargo
   :hook (rust-mode . cargo-minor-mode))
 
+
+;; ;; ==================== Solidity Setup ====================
 (use-package solidity-mode
   :mode "\\.sol\\'"
   :hook (solidity-mode . lsp-deferred)
@@ -599,3 +617,72 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+;; Enable relative line numbers
+(global-display-line-numbers-mode 1)
+(setq display-line-numbers-type 'relative)
+
+;; Enable JSON mode
+(use-package json-mode
+  :ensure t
+  :mode "\\.json\\'")
+
+;; Markdown updates 
+(use-package markdown-mode
+  :hook
+  (markdown-mode . nb/markdown-unhighlight)
+  :config
+  (defvar nb/current-line '(0 . 0)
+    "(start . end) of current line in current buffer")
+  (make-variable-buffer-local 'nb/current-line)
+
+  (defun nb/unhide-current-line (limit)
+    "Font-lock function"
+    (let ((start (max (point) (car nb/current-line)))
+          (end (min limit (cdr nb/current-line))))
+      (when (< start end)
+        (remove-text-properties start end
+                                '(invisible t display "" composition ""))
+        (goto-char limit)
+        t)))
+
+  (defun nb/refontify-on-linemove ()
+    "Post-command-hook"
+    (let* ((start (line-beginning-position))
+           (end (line-beginning-position 2))
+           (needs-update (not (equal start (car nb/current-line)))))
+      (setq nb/current-line (cons start end))
+      (when needs-update
+        (font-lock-fontify-block 3))))
+
+  (defun nb/markdown-unhighlight ()
+    "Enable markdown concealling"
+    (interactive)
+    (markdown-toggle-markup-hiding 'toggle)
+    (font-lock-add-keywords nil '((nb/unhide-current-line)) t)
+    (add-hook 'post-command-hook #'nb/refontify-on-linemove nil t))
+  :custom-face
+  (markdown-header-delimiter-face ((t (:foreground "#616161" :height 0.9))))
+  (markdown-header-face-1 ((t (:height 1.6  :foreground "#A3BE8C" :weight extra-bold :inherit markdown-header-face))))
+  (markdown-header-face-2 ((t (:height 1.4  :foreground "#EBCB8B" :weight extra-bold :inherit markdown-header-face))))
+  (markdown-header-face-3 ((t (:height 1.2  :foreground "#D08770" :weight extra-bold :inherit markdown-header-face))))
+  (markdown-header-face-4 ((t (:height 1.15 :foreground "#BF616A" :weight bold :inherit markdown-header-face))))
+  (markdown-header-face-5 ((t (:height 1.1  :foreground "#b48ead" :weight bold :inherit markdown-header-face))))
+  (markdown-header-face-6 ((t (:height 1.05 :foreground "#5e81ac" :weight semi-bold :inherit markdown-header-face)))))
+
+;; Enable Windmove 
+(use-package windmove
+  :ensure nil
+  :bind*
+  (("M-<left>" . windmove-left)
+   ("M-<right>" . windmove-right)
+   ("M-<up>" . windmove-up)
+   ("M-<down>" . windmove-down)))
+
+;; Enable electric-pair-mode for all buffers
+(electric-pair-mode 1)
+
+;; Enable treemacs evil bindings
+(use-package treemacs-evil
+  :after (treemacs evil)
+  :ensure t)
