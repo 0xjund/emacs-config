@@ -144,7 +144,7 @@
 ;;   (load-theme 'catppuccin :no-confirm))
 
 (use-package doom-themes
-:init (load-theme 'doom-dracula t))
+:init (load-theme 'doom-monokai-pro t))
 
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
@@ -247,9 +247,9 @@
   (setq org-log-into-drawer t)
 
   (setq org-agenda-files
-        '("~/Org-Sync/Org-Files/Tasks.org"
-          "~/Org-Sync/Org-Files/Habits.org"
-          "~/Org-Sync/Org-Files/Birthdays.org"))
+        '("~/Dropbox/org/inbox.org"
+          ;;"~/Dropbox/org/habits.org"
+          ))
 
   (require 'org-habit)
   (add-to-list 'org-modules 'org-habit)
@@ -328,6 +328,10 @@
             ((org-agenda-overriding-header "Cancelled Projects")
              (org-agenda-files org-agenda-files)))))))
 
+  ;; Set archive location
+ (setq org-archive-location "::* Archive")
+
+  
   (setq org-capture-templates
     `(("t" "Tasks / Projects")
       ("tt" "Task" entry (file+olp "~/Projects/Code/emacs-from-scratch/OrgFiles/Tasks.org" "Inbox")
@@ -610,6 +614,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(org-agenda-files '("/home/imhere/Dropbox/org/inbox.org"))
  '(package-selected-packages nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -686,3 +691,63 @@
 (use-package treemacs-evil
   :after (treemacs evil)
   :ensure t)
+
+(use-package adaptive-wrap
+  :ensure t
+  :hook ((prog-mode text-mode) . adaptive-wrap-prefix-mode)
+  :config
+  (setq-default adaptive-wrap-extra-indent 0)
+  (global-visual-line-mode 1))
+
+;; Set alert
+(use-package alert
+  :ensure t
+  :config
+  (setq alert-default-style 'libnotify))
+
+
+
+;; ;; Set org alerts
+
+(use-package org-alert
+  :ensure t
+  :config
+
+  ;; Set the notification style - libnotify is perfect for Linux/XFCE
+  (setq org-alert-notify-function 'org-alert-libnotify-notify)
+
+  (org-alert-enable)
+
+  (setq org-alert-notification-title "Org Alert")
+
+  ;; Check for alerts every 30 seconds 
+  (setq org-alert-interval 30)
+  
+  ;; Notification lead times - how far in advance to notify
+  (setq org-alert-notify-cutoff 10)
+  (setq org-alert-notify-after-event-cutoff 10) ; Stop notifying 10 min after event time
+  
+  )
+
+
+;; Spell check setup
+
+(use-package ispell
+  :ensure nil  ; Built into Emacs
+  :config
+  (setq ispell-program-name "aspell")  ; or "hunspell" if you prefer
+  (setq ispell-dictionary "british")   ; British English dictionary
+  (setq ispell-extra-args '("--sug-mode=ultra" "--lang=en_GB")))
+
+(use-package flyspell
+  :ensure nil  ; Built into Emacs
+  :hook
+  ((text-mode . flyspell-mode)
+   (prog-mode . flyspell-prog-mode))  ; Only spell-check comments/strings in code
+  :config
+  (setq flyspell-issue-message-flag nil)  ; Don't show messages for every misspelling
+  :bind
+  (("C-;" . flyspell-correct-word-before-point)))
+
+;; Enable image converter
+(setq image-use-external-converter t)
