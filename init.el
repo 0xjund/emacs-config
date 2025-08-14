@@ -1,6 +1,3 @@
-;; NOTE: init.el is now generated from Emacs.org.  Please edit that file
-;;       in Emacs and init.el will be generated automatically!
-
 (defvar efs/default-font-size 130)
 (defvar efs/default-variable-font-size 130)
 
